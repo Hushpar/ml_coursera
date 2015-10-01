@@ -62,21 +62,53 @@ Theta2_grad = zeros(size(Theta2));
 %               and Theta2_grad from Part 2.
 %
 
+% Cost function
+yv = zeros(m, num_labels); % resulting y vector 
+for i=1:m
+   yv(i,y(i)) = 1; 
+end
 
+a1 = [ones(m,1), X]; % adding bias unit value
 
+z2 = a1 * Theta1';
+a2 = sigmoid(z2);
+a2 = [ones(m,1), a2]; % adding bias unit value
 
+z3 = a2 * Theta2';
+a3 = sigmoid(z3);
 
+J = sum(sum( -yv.*log(a3)-(1-yv).*log(1-a3) ))/m;
 
+% Adding regularization
+J = J + (sum(sum(Theta1(:, 2:end).^2)) + sum(sum(Theta2(:, 2:end).^2)))*(lambda/(2*m));
 
+% Backpropagation
+for t=1:m
+   a_1 = X(t,:)';
+   a_1 = [1; a_1];
+   
+   z_2 = Theta1 * a_1;
+   a_2 = sigmoid(z_2);
+   a_2 = [1; a_2];
+   
+   z_3 = Theta2 * a_2;
+   a_3 = sigmoid(z_3);
+   
+   yt = yv(t,:)';
+   delta3 = a_3 - yt;
+   
+   delta2 = (Theta2' * delta3) .* sigmoidGradient([1; z_2]);
+   delta2 = delta2(2:end);
+   
+   Theta2_grad = Theta2_grad + delta3 * a_2';
+   Theta1_grad = Theta1_grad + delta2 * a_1';
+end
 
+Theta2_grad = 1/m * Theta2_grad;
+Theta1_grad = 1/m * Theta1_grad;
 
-
-
-
-
-
-
-
+Theta2_grad(:, 2:end) = Theta2_grad(:, 2:end) + lambda/m .* Theta2(:, 2:end);
+Theta1_grad(:, 2:end) = Theta1_grad(:, 2:end) + lambda/m .* Theta1(:, 2:end);
 
 
 % -------------------------------------------------------------
